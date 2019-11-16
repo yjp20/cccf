@@ -1,1 +1,7 @@
-This tool has two binaries, contest 
+This tool has three binaries:
+
+* contest: tracks the contests participated by the members after a certain period
+* leaderboard: generates a leaderboard based on codeforces rankings
+* problems_solved: matches users to the problems solved
+
+This is probably too specific for anybody to use other than me. Nevertheless it's up here on github.
