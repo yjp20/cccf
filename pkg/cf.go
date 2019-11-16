@@ -56,6 +56,29 @@ type CFUser struct {
 	Rank   string
 }
 
+type CFSubmission struct {
+	Id        int
+	ContestId int
+	Problem   CFProblem
+	Verdict   string
+}
+
+type CFProblem struct {
+	ContestId   int
+	ProblemName string
+	Index       string
+	Name        string
+	Rating      int
+}
+
+type CFVerdict int
+
+const (
+	CF_FAILED  = 0
+	CF_OK      = 1
+	CF_PARTIAL = 2
+)
+
 type wrapper struct {
 	Status string
 	Result interface{}

@@ -15,10 +15,14 @@ import (
 
 func main() {
 	fs := flag.NewFlagSet("leaderboard", flag.ExitOnError)
-	fs.String("c", "config", "config location")
-	sheetID := fs.String("sheetid", "", "Spreadsheet ID")
-	sheetrange := fs.String("lbrange", "", "ex) Sheet!A1:A4")
+	var (
+		_           = fs.String("c", "config", "config location")
+		sheetID     = fs.String("sheetid", "", "spreadsheet ID")
+		sheetRange  = fs.String("lbrange", "", "ex) Sheet!A1:A4")
+		memberRange = fs.String("memberrange", "", "ex) Sheet!A1:A4")
+	)
 	ff.Parse(fs, os.Args[1:],
+		ff.WithIgnoreUndefined(true),
 		ff.WithConfigFileFlag("c"),
 		ff.WithConfigFileParser(ff.PlainParser),
 		ff.WithEnvVarPrefix("CCCF"),
@@ -26,7 +30,7 @@ func main() {
 
 	println("Get members from google sheets")
 	ss := pkg.MustService(pkg.GetSheetsService())
-	md, err := pkg.GetMemberData(ss, *sheetID)
+	md, err := pkg.GetMemberData(ss, *sheetID, *memberRange)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,24 +50,25 @@ func main() {
 		member := mm[user.Handle]
 		member.Rating = user.Rating
 		if len(user.Rank) == 0 {
-			member.Rank = "Trash"
+			member.Rank = "Trash" // People who haven't even done a single Codeforces
 		} else {
 			member.Rank = user.Rank
 		}
 		mm[user.Handle] = member
 	}
 
-	println("Write to sheets: " + *sheetrange)
+	println("Write to sheets: " + *sheetRange)
 	mslice := pkg.MapToSlice(mm)
-	minterface := make([][]interface{}, len(mm))
+	output := make([][]interface{}, len(mm))
 	sort.Slice(mslice, func(i, j int) bool {
 		return mslice[i].Rating > mslice[j].Rating
 	})
 	for index, m := range mslice {
-		minterface[index] = []interface{}{m.Name, m.Handle, strconv.Itoa(m.Rating), m.Rank}
+		output[index] = []interface{}{m.Name, m.Handle, strconv.Itoa(m.Rating), m.Rank}
 	}
-	vr := sheets.ValueRange{Values: minterface}
-	err = pkg.SetRange(ss, *sheetID, *sheetrange, &vr)
+
+	vr := sheets.ValueRange{Values: output}
+	err = pkg.SetRange(ss, *sheetID, *sheetRange, &vr)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}

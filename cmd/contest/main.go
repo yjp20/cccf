@@ -24,11 +24,14 @@ type Cache struct {
 
 func main() {
 	fs := flag.NewFlagSet("leaderboard", flag.ExitOnError)
-	fs.String("c", "config", "config location")
-	sheetID := fs.String("sheetid", "", "")
-	sheetrange := fs.String("ctrange", "", "ex) Sheet!A1:Z10")
-	_ = fs.String("lbrange", "", "")
+	var (
+		_           = fs.String("c", "config", "config location")
+		sheetID     = fs.String("sheetid", "", "spreadsheet ID")
+		sheetRange  = fs.String("ctrange", "", "ex) Sheet!A1:Z10")
+		memberRange = fs.String("memberrange", "", "ex) Sheet!A1:Z10")
+	)
 	err := ff.Parse(fs, os.Args[1:],
+		ff.WithIgnoreUndefined(true),
 		ff.WithConfigFileFlag("c"),
 		ff.WithConfigFileParser(ff.PlainParser),
 		ff.WithEnvVarPrefix("CCCF"),
@@ -41,7 +44,7 @@ func main() {
 	startTime := time.Date(2019, time.September, 0, 0, 0, 0, 0, time.UTC)
 	ss := pkg.MustService(pkg.GetSheetsService())
 	cache := Cache{}
-	err = cache.readCache(ss, *sheetID)
+	err = cache.readCache(ss, *sheetID, *memberRange)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,62 +76,80 @@ func main() {
 		}
 		appendContestToMap(contest, cache, hc, mm)
 		contestmap[contestId] = i
+		cache.ContestList[contestId] = true
 		i++
 	}
 
 	println("Write to google sheets")
 	i = 1
-	m := make([][]interface{}, len(mm)+1)
+	// Init all cells, required to overwrite cells that are outdated
+	output := make([][]interface{}, len(mm)+1)
 	for i := 0; i < len(mm)+1; i++ {
-		m[i] = make([]interface{}, len(contestmap)+3)
+		output[i] = make([]interface{}, len(contestmap)+3)
 		for j := 0; j < len(contestmap)+3; j++ {
-			m[i][j] = " "
+			output[i][j] = " "
 		}
 	}
-	m[0][0] = "Name"
-	m[0][1] = "Handle"
-	m[0][2] = "Counter"
+
+	// Write the first row, which include column headers such as the
+	// Name, Handle, Counter (total num of contests participated in)
+	// and the index for each contest.
+	output[0][0] = "Name"
+	output[0][1] = "Handle"
+	output[0][2] = "Counter"
 	for key, index := range contestmap {
-		m[0][index] = strconv.Itoa(key)
+		output[0][index] = strconv.Itoa(key)
 	}
 	mslice := pkg.MapToSlice(mm)
 	sort.Slice(mslice, func(i, j int) bool {
 		return mslice[i].Index < mslice[j].Index
 	})
+
+	// Fill out information for each member, where it matches up the contest
+	// participated by the member to the right column.
 	for _, member := range mslice {
 		idx := member.Index + 1 + 1
-		m[i][0] = member.Name
-		m[i][1] = member.Handle
-		m[i][2] = fmt.Sprintf("=COUNT(D%d:ZZ%d)", idx, idx)
+		output[i][0] = member.Name
+		output[i][1] = member.Handle
+		output[i][2] = fmt.Sprintf("=COUNT(D%d:ZZ%d)", idx, idx)
 		for id, score := range member.Contests {
-			m[i][contestmap[id]] = score
+			output[i][contestmap[id]] = score
 		}
 		i++
 	}
 
-	vr := sheets.ValueRange{}
-	vr.Values = m
-	err = pkg.SetRange(ss, *sheetID, *sheetrange, &vr)
+	vr := sheets.ValueRange{Values: output}
+	err = pkg.SetRange(ss, *sheetID, *sheetRange, &vr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = cache.writeCache()
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (c *Cache) readCache(ss *sheets.Service, sheetID string) error {
-	file, err := ioutil.ReadFile("members.json")
+func (c *Cache) readCache(ss *sheets.Service, sheetID, memberRange string) error {
+	file, err := ioutil.ReadFile("contest_cache.json")
 	if err == nil {
 		err = json.Unmarshal(file, &c)
 		if err != nil {
 			return err
 		}
 	} else {
-		md, err := pkg.GetMemberData(ss, sheetID)
+		md, err := pkg.GetMemberData(ss, sheetID, memberRange)
 		if err != nil {
 			return err
 		}
+		c.ContestList = make(map[int]bool)
 		c.MemberList = md
 	}
 	return nil
+}
+
+func (c *Cache) writeCache() error {
+	file, _ := json.MarshalIndent(c, "", " ")
+	return ioutil.WriteFile("contest_cache.json", file, 0644)
 }
 
 func appendContestToMap(
@@ -146,7 +167,6 @@ func appendContestToMap(
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	for _, row := range ret.Rows {
 		handle := row.Party.Members[0].Handle
 		member := mm[handle]

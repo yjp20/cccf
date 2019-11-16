@@ -35,9 +35,8 @@ func GetSheetsService() (*sheets.Service, error) {
 	return sheetsService, nil
 }
 
-func GetMemberData(ss *sheets.Service, sid string) ([]MemberData, error) {
-	sheetRange := "C2:E100" // Assume there's never going to be more than 100 members (there better not be)
-	resp, err := ss.Spreadsheets.Values.Get(sid, sheetRange).Do()
+func GetMemberData(ss *sheets.Service, sheetId string, memberRange string) ([]MemberData, error) {
+	resp, err := ss.Spreadsheets.Values.Get(sheetId, memberRange).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +53,20 @@ func GetMemberData(ss *sheets.Service, sid string) ([]MemberData, error) {
 	return md, nil
 }
 
-func SetRange(ss *sheets.Service, sid, r string, data *sheets.ValueRange) error {
-	_, err := ss.Spreadsheets.Values.Update(sid, r, data).ValueInputOption("USER_ENTERED").Do()
+func GetProblems(ss *sheets.Service, sheetId, problemRange string) ([]string, error) {
+	resp, err := ss.Spreadsheets.Values.Get(sheetId, problemRange).Do()
+	if err != nil {
+		return nil, err
+	}
+	problems := make([]string, len(resp.Values[0]))
+	for idx, col := range resp.Values[0] {
+		problems[idx] = col.(string)
+	}
+	return problems, nil
+}
+
+func SetRange(ss *sheets.Service, sheetId, r string, data *sheets.ValueRange) error {
+	_, err := ss.Spreadsheets.Values.Update(sheetId, r, data).ValueInputOption("USER_ENTERED").Do()
 	return err
 }
 
