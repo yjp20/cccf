@@ -27,7 +27,7 @@ func main() {
 	var (
 		_           = fs.String("c", "config", "config location")
 		sheetID     = fs.String("sheetid", "", "spreadsheet ID")
-		sheetRange  = fs.String("ctrange", "", "ex) Sheet!A1:Z10")
+		outputRange = fs.String("ct_out_range", "", "ex) Sheet!A1:Z10")
 		memberRange = fs.String("memberrange", "", "ex) Sheet!A1:Z10")
 	)
 	err := ff.Parse(fs, os.Args[1:],
@@ -119,7 +119,7 @@ func main() {
 	}
 
 	vr := sheets.ValueRange{Values: output}
-	err = pkg.SetRange(ss, *sheetID, *sheetRange, &vr)
+	err = pkg.SetRange(ss, *sheetID, *outputRange, &vr)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,3 +1,5 @@
 members.json
 *.swp
+config
 contest_cache.json
+build

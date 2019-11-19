@@ -18,7 +18,7 @@ func main() {
 	var (
 		_           = fs.String("c", "config", "config location")
 		sheetID     = fs.String("sheetid", "", "spreadsheet ID")
-		sheetRange  = fs.String("lbrange", "", "ex) Sheet!A1:A4")
+		outputRange = fs.String("lb_out_range", "", "ex) Sheet!A1:A4")
 		memberRange = fs.String("memberrange", "", "ex) Sheet!A1:A4")
 	)
 	ff.Parse(fs, os.Args[1:],
@@ -57,7 +57,7 @@ func main() {
 		mm[user.Handle] = member
 	}
 
-	println("Write to sheets: " + *sheetRange)
+	println("Write to sheets: " + *outputRange)
 	mslice := pkg.MapToSlice(mm)
 	output := make([][]interface{}, len(mm))
 	sort.Slice(mslice, func(i, j int) bool {
@@ -68,7 +68,7 @@ func main() {
 	}
 
 	vr := sheets.ValueRange{Values: output}
-	err = pkg.SetRange(ss, *sheetID, *sheetRange, &vr)
+	err = pkg.SetRange(ss, *sheetID, *outputRange, &vr)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}

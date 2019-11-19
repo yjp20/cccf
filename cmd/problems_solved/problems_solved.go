@@ -17,7 +17,8 @@ func main() {
 	var (
 		_           = fs.String("c", "config", "config location")
 		sheetID     = fs.String("sheetid", "", "Spreadsheet ID")
-		sheetRange  = fs.String("psrange", "", "ex) Sheet!A1:A4")
+		inputRange  = fs.String("ps_in_range", "", "ex) Sheet!A1:A4")
+		outputRange = fs.String("ps_out_range", "", "ex) Sheet!A1:A4")
 		memberRange = fs.String("memberrange", "", "ex) Sheet!A1:A4")
 	)
 	ff.Parse(fs, os.Args[1:],
@@ -33,8 +34,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	problems, err := pkg.GetProblems(ss, *sheetID, *sheetRange)
-	problems = problems[2:]
+	problems, err := pkg.GetProblems(ss, *sheetID, *inputRange)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,18 +66,16 @@ func main() {
 		}
 	}
 
-	println("Write to sheets: " + *sheetRange)
-	output := make([][]interface{}, len(md)+2)
-	output[0] = make([]interface{}, 0)
-	output[1] = make([]interface{}, 0)
+	println("Write to sheets: " + *outputRange)
+	output := make([][]interface{}, len(md))
 	for idx := range md {
-		output[idx+2] = make([]interface{}, len(problems)+2)
+		output[idx] = make([]interface{}, len(problems))
 		for jdx, problem := range problems {
-			output[idx+2][jdx+2] = memberSolved[idx][problem]
+			output[idx][jdx] = memberSolved[idx][problem]
 		}
 	}
 	vr := sheets.ValueRange{Values: output}
-	err = pkg.SetRange(ss, *sheetID, *sheetRange, &vr)
+	err = pkg.SetRange(ss, *sheetID, *outputRange, &vr)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
