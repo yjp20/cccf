@@ -1,3 +1,4 @@
 #!/bin/sh
 
-find ./cmd -name '*.go' -exec go build -o build {} \;
+mkdir -p ./build
+find "$PWD/cmd" -name '*.go' -exec sh -c 'go build -o "build/$(basename {} .go)" {}' \;
