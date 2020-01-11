@@ -19,7 +19,7 @@ func main() {
 		_           = fs.String("c", "config", "config location")
 		sheetID     = fs.String("sheetid", "", "spreadsheet ID")
 		outputRange = fs.String("lb_out_range", "", "ex) Sheet!A1:A4")
-		memberRange = fs.String("memberrange", "", "ex) Sheet!A1:A4")
+		memberRange = fs.String("member_range", "", "ex) Sheet!A1:A4")
 	)
 	ff.Parse(fs, os.Args[1:],
 		ff.WithIgnoreUndefined(true),

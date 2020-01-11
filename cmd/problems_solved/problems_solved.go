@@ -19,7 +19,7 @@ func main() {
 		sheetID     = fs.String("sheetid", "", "Spreadsheet ID")
 		inputRange  = fs.String("ps_in_range", "", "ex) Sheet!A1:A4")
 		outputRange = fs.String("ps_out_range", "", "ex) Sheet!A1:A4")
-		memberRange = fs.String("memberrange", "", "ex) Sheet!A1:A4")
+		memberRange = fs.String("member_range", "", "ex) Sheet!A1:A4")
 	)
 	ff.Parse(fs, os.Args[1:],
 		ff.WithIgnoreUndefined(true),
