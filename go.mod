@@ -9,7 +9,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/peterbourgon/ff v1.6.1-0.20191020044158-d2fc9ac559d9
 	go.opencensus.io v0.22.2 // indirect
-	golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5 // indirect
 	golang.org/x/net v0.0.0-20191112182307-2180aed22343 // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sys v0.0.0-20191113165036-4c7a9d0fe056 // indirect

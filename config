@@ -1,6 +1,7 @@
 sheetid 1uE_7NpFJs8Vre0cSgGO9MhkZvAzK_TcJ55heUe-Jfc0
-memberrange General!C2:E100
+member_range General!C2:E100
 lb_out_range Codeforces!A2:D100
-ctrange CodeforcesTracker!A1:ZZ100
-ps_in_range ProblemLadder!C1:ZZ100
+ct_out_range CodeforcesTracker!A1:ZZ100
+ps_in_range  ProblemLadder!C1:ZZ1
 ps_out_range ProblemLadder!C4:ZZ100
+time_string 01/01/20

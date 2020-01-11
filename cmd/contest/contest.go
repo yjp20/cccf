@@ -28,7 +28,8 @@ func main() {
 		_           = fs.String("c", "config", "config location")
 		sheetID     = fs.String("sheetid", "", "spreadsheet ID")
 		outputRange = fs.String("ct_out_range", "", "ex) Sheet!A1:Z10")
-		memberRange = fs.String("memberrange", "", "ex) Sheet!A1:Z10")
+		memberRange = fs.String("member_range", "", "ex) Sheet!A1:Z10")
+		timeString  = fs.String("time_string", "", "month/date/year  ex) 01/02/06")
 	)
 	err := ff.Parse(fs, os.Args[1:],
 		ff.WithIgnoreUndefined(true),
@@ -41,9 +42,12 @@ func main() {
 	}
 
 	println("Get members from google sheets")
-	startTime := time.Date(2019, time.September, 0, 0, 0, 0, 0, time.UTC)
+	startTime, err := time.Parse("01/02/06", *timeString)
 	ss := pkg.MustService(pkg.GetSheetsService())
 	cache := Cache{}
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = cache.readCache(ss, *sheetID, *memberRange)
 	if err != nil {
 		log.Fatal(err)
